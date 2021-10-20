@@ -18,25 +18,16 @@ describe(plugin.name, () => {
       await checkOutput(
         /* GraphQL */ `
           type Query {
-            hello: String!
+            hello1: String
+            hello2: String!
           }
         `,
         /* GraphQL */ `
-          query hello {
-            hello
+          query hello1 {
+            hello1
           }
-        `
-      );
-
-      await checkOutput(
-        /* GraphQL */ `
-          type Query {
-            hello: String
-          }
-        `,
-        /* GraphQL */ `
-          query hello {
-            hello
+          query hello2 {
+            hello2
           }
         `
       );
