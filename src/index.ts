@@ -3,10 +3,33 @@ import {
   PluginFunction,
   PluginValidateFn,
 } from '@graphql-codegen/plugin-helpers';
-import {introspectionFromSchema, IntrospectionObjectType} from 'graphql';
-import {getQueryArgumentsStr} from './getQueryArgumentsStr';
-import {removeNonNullType} from './removeNonNullType';
+import {
+  IntrospectionField,
+  introspectionFromSchema,
+  IntrospectionObjectType,
+  IntrospectionType,
+} from 'graphql';
+import {getArgumentsStr} from './getArgumentsStr';
 import {typeToFieldsStr} from './typeToFieldsStr';
+
+const getFileFromQueryFields = (
+  types: readonly IntrospectionType[],
+  queryFields: readonly IntrospectionField[],
+  queryType: 'query' | 'mutation'
+) => {
+  return queryFields
+    .map(field => {
+      const argumentsStr = getArgumentsStr(field);
+      const fieldsStr = typeToFieldsStr(types, field.type);
+
+      return `
+          ${queryType} ${field.name}${argumentsStr.head} {
+            ${field.name}${argumentsStr.body} ${fieldsStr}
+          }
+        `;
+    })
+    .join('\n');
+};
 
 export const plugin: PluginFunction = schema => {
   let file = '';
@@ -16,19 +39,14 @@ export const plugin: PluginFunction = schema => {
     | IntrospectionObjectType
     | undefined;
   if (queriesType) {
-    file += queriesType.fields
-      .map(query => {
-        const queryType = removeNonNullType(query.type);
-        const argumentsStr = getQueryArgumentsStr(query);
-        const fieldsStr = typeToFieldsStr(types, query, queryType);
+    file = getFileFromQueryFields(types, queriesType.fields, 'query');
+  }
 
-        return `
-          query ${query.name}${argumentsStr.head} {
-            ${query.name}${argumentsStr.body} ${fieldsStr}
-          }
-        `;
-      })
-      .join('\n');
+  const mutationsType = types.find(t => t.name === 'Mutation') as
+    | IntrospectionObjectType
+    | undefined;
+  if (mutationsType) {
+    file += getFileFromQueryFields(types, mutationsType.fields, 'mutation');
   }
 
   return file;

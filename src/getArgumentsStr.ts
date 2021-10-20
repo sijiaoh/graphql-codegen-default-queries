@@ -1,7 +1,7 @@
 import {IntrospectionField, IntrospectionInputTypeRef} from 'graphql';
 import {removeInputNonNullType} from './removeNonNullType';
 
-export const getQueryArgumentsStr = (
+export const getArgumentsStr = (
   query: IntrospectionField
 ): {head: string; body: string} => {
   if (!query.args.length) return {head: '', body: ''};

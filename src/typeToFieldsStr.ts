@@ -1,16 +1,16 @@
 import {EOL} from 'os';
 import {
-  IntrospectionField,
   IntrospectionObjectType,
+  IntrospectionOutputTypeRef,
   IntrospectionType,
 } from 'graphql';
 import {removeNonNullType} from './removeNonNullType';
 
 export const typeToFieldsStr = (
   types: readonly IntrospectionType[],
-  query: IntrospectionField,
-  type: ReturnType<typeof removeNonNullType>
+  queryType: IntrospectionOutputTypeRef
 ): string => {
+  const type = removeNonNullType(queryType);
   if (type.kind === 'OBJECT') {
     const name = type.name;
     const returnType = types.find(type => type.name === name) as
@@ -27,8 +27,7 @@ export const typeToFieldsStr = (
       }
     `;
   } else if (type.kind === 'LIST') {
-    const innerType = removeNonNullType(type.ofType);
-    return typeToFieldsStr(types, query, innerType);
+    return typeToFieldsStr(types, type.ofType);
   } else {
     return '';
   }
