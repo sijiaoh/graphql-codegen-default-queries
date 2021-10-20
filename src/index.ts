@@ -9,26 +9,27 @@ import {removeNonNullType} from './removeNonNullType';
 import {typeToFieldsStr} from './typeToFieldsStr';
 
 export const plugin: PluginFunction = schema => {
+  let file = '';
   const types = introspectionFromSchema(schema).__schema.types;
+
   const queriesType = types.find(t => t.name === 'Query') as
     | IntrospectionObjectType
     | undefined;
+  if (queriesType) {
+    file += queriesType.fields
+      .map(query => {
+        const queryType = removeNonNullType(query.type);
+        const argumentsStr = getQueryArgumentsStr(query);
+        const fieldsStr = typeToFieldsStr(types, query, queryType);
 
-  if (!queriesType) throw new Error('Query not found!');
-
-  const file = queriesType.fields
-    .map(query => {
-      const queryType = removeNonNullType(query.type);
-      const argumentsStr = getQueryArgumentsStr(query);
-      const fieldsStr = typeToFieldsStr(types, query, queryType);
-
-      return `
-        query ${query.name}${argumentsStr.head} {
-          ${query.name}${argumentsStr.body} ${fieldsStr}
-        }
-      `;
-    })
-    .join('\n');
+        return `
+          query ${query.name}${argumentsStr.head} {
+            ${query.name}${argumentsStr.body} ${fieldsStr}
+          }
+        `;
+      })
+      .join('\n');
+  }
 
   return file;
 };
