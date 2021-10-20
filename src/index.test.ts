@@ -39,7 +39,7 @@ describe(plugin.name, () => {
       await checkOutput(
         /* GraphQL */ `
           type User {
-            id: Int
+            id: Int!
             name: String
           }
 
@@ -71,7 +71,7 @@ describe(plugin.name, () => {
       await checkOutput(
         /* GraphQL */ `
           type User {
-            id: Int
+            id: Int!
             name: String
           }
 
@@ -100,6 +100,44 @@ describe(plugin.name, () => {
               id
               name
             }
+          }
+        `
+      );
+    });
+  });
+
+  describe('with arguments', () => {
+    it('return correct output', async () => {
+      await checkOutput(
+        /* GraphQL */ `
+          input InputUser {
+            id: Int!
+            name: String
+          }
+
+          type User {
+            id: Int!
+            name: String
+          }
+
+          type Query {
+            hello(id: Int): String!
+            me(id: Int!, str: String): User
+            inputMe(user: InputUser!): String!
+          }
+        `,
+        /* GraphQL */ `
+          query hello($id: Int) {
+            hello(id: $id)
+          }
+          query me($id: Int!, $str: String) {
+            me(id: $id, str: $str) {
+              id
+              name
+            }
+          }
+          query inputMe($user: InputUser!) {
+            inputMe(user: $user)
           }
         `
       );

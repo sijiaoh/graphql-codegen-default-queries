@@ -4,6 +4,7 @@ import {
   PluginValidateFn,
 } from '@graphql-codegen/plugin-helpers';
 import {introspectionFromSchema, IntrospectionObjectType} from 'graphql';
+import {getQueryArgumentsStr} from './getQueryArgumentsStr';
 import {removeNonNullType} from './removeNonNullType';
 import {typeToFieldsStr} from './typeToFieldsStr';
 
@@ -18,9 +19,12 @@ export const plugin: PluginFunction = schema => {
   const file = queriesType.fields
     .map(query => {
       const queryType = removeNonNullType(query.type);
+      const argumentsStr = getQueryArgumentsStr(query);
+      const fieldsStr = typeToFieldsStr(types, query, queryType);
+
       return `
-        query ${query.name} {
-          ${query.name} ${typeToFieldsStr(types, query, queryType)}
+        query ${query.name}${argumentsStr.head} {
+          ${query.name}${argumentsStr.body} ${fieldsStr}
         }
       `;
     })
