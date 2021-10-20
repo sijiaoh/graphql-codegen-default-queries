@@ -10,50 +10,63 @@ import {
   IntrospectionNamedTypeRef,
   IntrospectionObjectType,
   IntrospectionOutputType,
+  IntrospectionOutputTypeRef,
 } from 'graphql';
+
+const removeNonNullType = (
+  type: IntrospectionOutputTypeRef
+):
+  | IntrospectionNamedTypeRef<IntrospectionOutputType>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | IntrospectionListTypeRef<any> => {
+  if (type.kind === 'NON_NULL') return type.ofType;
+  else return type;
+};
 
 export const plugin: PluginFunction = schema => {
   const types = introspectionFromSchema(schema).__schema.types;
-  const queryType = types.find(t => t.name === 'Query') as
+  const queriesType = types.find(t => t.name === 'Query') as
     | IntrospectionObjectType
     | undefined;
 
-  if (!queryType) throw new Error('Query not found!');
+  if (!queriesType) throw new Error('Query not found!');
 
-  const file = queryType.fields
-    .map(field => {
-      let fieldType:
-        | IntrospectionNamedTypeRef<IntrospectionOutputType>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        | IntrospectionListTypeRef<any>;
+  const file = queriesType.fields
+    .map(query => {
+      const queryType = removeNonNullType(query.type);
 
-      if (field.type.kind === 'NON_NULL') fieldType = field.type.ofType;
-      else fieldType = field.type;
+      const typeToQueryString = (
+        type: ReturnType<typeof removeNonNullType>
+      ): string => {
+        if (type.kind === 'OBJECT') {
+          const name = type.name;
+          const returnType = types.find(type => type.name === name) as
+            | IntrospectionObjectType
+            | undefined;
 
-      if (fieldType.kind === 'OBJECT') {
-        const name = fieldType.name;
-        const returnType = types.find(type => type.name === name) as
-          | IntrospectionObjectType
-          | undefined;
+          if (!returnType) throw new Error('Return type not found!');
 
-        if (!returnType) throw new Error('Return type not found!');
+          const fields = returnType.fields.map(field => field.name).join(EOL);
 
-        const fields = returnType.fields.map(field => field.name).join(EOL);
-
-        return `
-          query ${field.name} {
-            ${field.name} {
-              ${fields}
+          return `
+            query ${query.name} {
+              ${query.name} {
+                ${fields}
+              }
             }
-          }
-        `;
-      } else {
-        return `
-          query ${field.name} {
-            ${field.name}
-          }
-        `;
-      }
+          `;
+        } else if (type.kind === 'LIST') {
+          const innerType = removeNonNullType(type.ofType);
+          return typeToQueryString(innerType);
+        } else {
+          return `
+            query ${query.name} {
+              ${query.name}
+            }
+          `;
+        }
+      };
+      return typeToQueryString(queryType);
     })
     .join('\n');
 

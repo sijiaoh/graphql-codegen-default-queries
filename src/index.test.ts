@@ -65,4 +65,44 @@ describe(plugin.name, () => {
       );
     });
   });
+
+  describe('return array query', () => {
+    it('return correct output', async () => {
+      await checkOutput(
+        /* GraphQL */ `
+          type User {
+            id: Int
+            name: String
+          }
+
+          type Query {
+            hellos1: [String]
+            hellos2: [String!]!
+            users1: [User]
+            users2: [User!]!
+          }
+        `,
+        /* GraphQL */ `
+          query hellos1 {
+            hellos1
+          }
+          query hellos2 {
+            hellos2
+          }
+          query users1 {
+            users1 {
+              id
+              name
+            }
+          }
+          query users2 {
+            users2 {
+              id
+              name
+            }
+          }
+        `
+      );
+    });
+  });
 });
