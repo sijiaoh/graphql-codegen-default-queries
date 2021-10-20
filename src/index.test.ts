@@ -1,4 +1,4 @@
-import {buildSchema, parse, introspectionFromSchema} from 'graphql';
+import {buildSchema} from 'graphql';
 import {plugin} from '../src/index';
 
 describe('graphql-codegen-default-queries', () => {
