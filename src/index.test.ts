@@ -124,7 +124,9 @@ describe(plugin.name, () => {
             type Query {
               hello(id: Int): String!
               me(id: Int!, str: String): User
-              inputMe(user: InputUser!): String!
+              inputMe(user: InputUser!): User!
+              hellos(ids: [Int]): String!
+              inputUsers(users: [InputUser!]!): [User!]!
             }
           `,
           /* GraphQL */ `
@@ -138,7 +140,19 @@ describe(plugin.name, () => {
               }
             }
             query inputMe($user: InputUser!) {
-              inputMe(user: $user)
+              inputMe(user: $user) {
+                id
+                name
+              }
+            }
+            query hellos($ids: [Int]) {
+              hellos(ids: $ids)
+            }
+            query inputUsers($users: [InputUser!]!) {
+              inputUsers(users: $users) {
+                id
+                name
+              }
             }
           `
         );
@@ -168,6 +182,8 @@ describe(plugin.name, () => {
             updateHello(str: String): Boolean!
             updateMe(id: Int!, name: String): User!
             updateUser(user: InputUser!): [User]!
+            updateUsers(users: [InputUser!]!): [User!]!
+            removeUsers(ids: [Int!]!): [Boolean!]!
           }
         `,
         /* GraphQL */ `
@@ -188,6 +204,15 @@ describe(plugin.name, () => {
               id
               name
             }
+          }
+          mutation updateUsers($users: [InputUser!]!) {
+            updateUsers(users: $users) {
+              id
+              name
+            }
+          }
+          mutation removeUsers($ids: [Int!]!) {
+            removeUsers(ids: $ids)
           }
         `
       );
