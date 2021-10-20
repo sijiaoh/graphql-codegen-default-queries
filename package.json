@@ -1,12 +1,23 @@
 {
-  "name": "graphql-codegen-default-queries",
+  "name": "@sijiaoh/graphql-codegen-default-queries",
+  "version": "0.0.0",
   "packageManager": "yarn@3.0.2",
+  "keywords": [
+    "graphql-codegen",
+    "sijiaoh"
+  ],
+  "author": "sijiaoh",
+  "license": "MIT",
+  "files": [
+    "build/"
+  ],
   "scripts": {
     "lint": "gts lint",
     "clean": "gts clean",
     "build": "tsc --project tsconfig.build.json",
     "fix": "gts fix",
     "test": "yarn jest",
+    "prepublish": "yarn clean && yarn build",
     "posttest": "yarn run lint"
   },
   "dependencies": {
