@@ -10,8 +10,7 @@
     "posttest": "yarn run lint"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^2.2.0",
-    "@graphql-codegen/visitor-plugin-common": "^2.4.0"
+    "@graphql-codegen/plugin-helpers": "^2.2.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
