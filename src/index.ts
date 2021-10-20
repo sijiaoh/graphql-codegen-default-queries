@@ -1,3 +1,4 @@
+import {EOL} from 'os';
 import {extname} from 'path';
 import {
   PluginFunction,
@@ -12,31 +13,47 @@ import {
 } from 'graphql';
 
 export const plugin: PluginFunction = schema => {
-  const queryType = introspectionFromSchema(schema).__schema.types.find(
-    t => t.name === 'Query'
-  ) as IntrospectionObjectType | undefined;
+  const types = introspectionFromSchema(schema).__schema.types;
+  const queryType = types.find(t => t.name === 'Query') as
+    | IntrospectionObjectType
+    | undefined;
 
-  if (!queryType) throw new Error('Query not found');
+  if (!queryType) throw new Error('Query not found!');
 
   const file = queryType.fields
     .map(field => {
-      let type:
+      let fieldType:
         | IntrospectionNamedTypeRef<IntrospectionOutputType>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         | IntrospectionListTypeRef<any>;
 
-      if (field.type.kind === 'NON_NULL') type = field.type.ofType;
-      else type = field.type;
+      if (field.type.kind === 'NON_NULL') fieldType = field.type.ofType;
+      else fieldType = field.type;
 
-      if (type.kind === 'SCALAR') {
+      if (fieldType.kind === 'OBJECT') {
+        const name = fieldType.name;
+        const returnType = types.find(type => type.name === name) as
+          | IntrospectionObjectType
+          | undefined;
+
+        if (!returnType) throw new Error('Return type not found!');
+
+        const fields = returnType.fields.map(field => field.name).join(EOL);
+
+        return `
+          query ${field.name} {
+            ${field.name} {
+              ${fields}
+            }
+          }
+        `;
+      } else {
         return `
           query ${field.name} {
             ${field.name}
           }
         `;
       }
-
-      return '';
     })
     .join('\n');
 
