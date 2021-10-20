@@ -5,8 +5,10 @@ import {
 } from '@graphql-codegen/plugin-helpers';
 import {
   introspectionFromSchema,
+  IntrospectionListTypeRef,
+  IntrospectionNamedTypeRef,
   IntrospectionObjectType,
-  IntrospectionOutputTypeRef,
+  IntrospectionOutputType,
 } from 'graphql';
 
 export const plugin: PluginFunction = schema => {
@@ -18,7 +20,11 @@ export const plugin: PluginFunction = schema => {
 
   const file = queryType.fields
     .map(field => {
-      let type: IntrospectionOutputTypeRef;
+      let type:
+        | IntrospectionNamedTypeRef<IntrospectionOutputType>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        | IntrospectionListTypeRef<any>;
+
       if (field.type.kind === 'NON_NULL') type = field.type.ofType;
       else type = field.type;
 
