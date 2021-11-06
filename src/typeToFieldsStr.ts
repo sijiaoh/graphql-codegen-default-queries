@@ -19,7 +19,12 @@ export const typeToFieldsStr = (
 
     if (!returnType) throw new Error('Return type not found!');
 
-    const fields = returnType.fields.map(field => field.name).join(EOL);
+    const fields = returnType.fields
+      .map(field => {
+        const res = typeToFieldsStr(types, field.type);
+        return `${field.name} ${res}`;
+      })
+      .join(EOL);
 
     return `
       {

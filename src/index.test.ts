@@ -158,6 +158,44 @@ describe(plugin.name, () => {
         );
       });
     });
+
+    describe('with nest type', () => {
+      it('return correct output', async () => {
+        await checkOutput(
+          /* GraphQL */ `
+            input InputUser {
+              id: Int!
+              name: String
+            }
+
+            type User {
+              id: Int!
+              name: String
+            }
+
+            type Post {
+              id: Int!
+              user: User!
+            }
+
+            type Query {
+              post(id: Int!): Post!
+            }
+          `,
+          /* GraphQL */ `
+            query post($id: Int!) {
+              post(id: $id) {
+                id
+                user {
+                  id
+                  name
+                }
+              }
+            }
+          `
+        );
+      });
+    });
   });
 
   describe('mutation', () => {
@@ -174,6 +212,11 @@ describe(plugin.name, () => {
             name: String
           }
 
+          type Post {
+            id: Int!
+            user: User!
+          }
+
           type Query {
             hello: String
           }
@@ -184,6 +227,7 @@ describe(plugin.name, () => {
             updateUser(user: InputUser!): [User]!
             updateUsers(users: [InputUser!]!): [User!]!
             removeUsers(ids: [Int!]!): [Boolean!]!
+            updatePost(id: Int!): Post!
           }
         `,
         /* GraphQL */ `
@@ -213,6 +257,15 @@ describe(plugin.name, () => {
           }
           mutation removeUsers($ids: [Int!]!) {
             removeUsers(ids: $ids)
+          }
+          mutation updatePost($id: Int!) {
+            updatePost(id: $id) {
+              id
+              user {
+                id
+                name
+              }
+            }
           }
         `
       );
