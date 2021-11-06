@@ -1,6 +1,6 @@
 {
   "name": "@sijiaoh/graphql-codegen-default-queries",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "packageManager": "yarn@3.0.2",
   "keywords": [
     "graphql-codegen",
